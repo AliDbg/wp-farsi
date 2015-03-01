@@ -1,0 +1,2 @@
+# wp-farsi
+wordpress plugin
