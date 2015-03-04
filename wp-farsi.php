@@ -5,11 +5,21 @@
 	Description: افزونه مبدل تاریخ میلادی به شمسی، مکمل و سازگار با افزونه‌های مشابه. 
 	Author: Ali.Dbg
 	Author URI: https://github.com/alidbg/wp-farsi
-	Version: 1.0
+	Version: 1.1
 	License: GPLv3 (http://www.gnu.org/licenses/gpl-3.0.html)
 */ 
 
 defined('ABSPATH')||die;
+
+if(extension_loaded('mbstring')){
+    mb_internal_encoding('UTF-8');
+    mb_language('neutral');
+    mb_http_output('UTF-8');
+}elseif(function_exists('ini_set')){
+    ini_set('default_charset','UTF-8');
+    ini_set('date.timezone',  'UTC');
+}
+
 require_once plugin_dir_path( __FILE__ ) . 'pdate.php';
 
 function num2fa($str,$cur=false){
@@ -23,8 +33,9 @@ function download_faIR(){
 
 function wpfa_activate(){
     download_faIR();
-    update_option('WPLANG', 'fa_IR');
+   	update_option('WPLANG', 'fa_IR');
     update_option('start_of_week', '6');
+    update_option('timezone_string', 'Asia/Tehran');
 }
 
 function wpfa_deactivate(){
@@ -42,7 +53,7 @@ function patch_func($patch){
 	$replace = "else\n\t\treturn date_i18n( " . '$format, $i' . " );";
 	$pattern = "else\n\t\treturn date( " . '$format, $i' . " );";
 	if(!$patch) list($replace, $pattern) = array($pattern, $replace);
-    if(is_file($source) && is_writable($source)) file_put_contents($source, str_replace($pattern, $replace, file_get_contents($source)));
+    if(is_readable($source) && is_writable($source)) file_put_contents($source, str_replace($pattern, $replace, file_get_contents($source)));
 }
 
 function timestampdiv(){?>
@@ -61,21 +72,11 @@ function dreg_jsfa() {
 }
 
 function wpfa_load(){
-	if (extension_loaded('mbstring')){
-		mb_internal_encoding('UTF-8');
-		mb_language('neutral');
-		mb_http_output('UTF-8');
-	}
-	ini_set('default_charset','UTF-8');
-	ini_set('date.timezone',  'UTC');
-	date_default_timezone_set('UTC');
-	update_option('timezone_string', 'Asia/Tehran');
-
 	if (num2fa(mysql2date("Y m", "2014 12", true)) != num2fa(mysql2date("Y m", "2014 12", false))) patch_func(true);
 
 	$remove_filters = array(
-		'date_i18n','get_post_time','get_comment_date',	'get_comment_time',	'get_the_date',	'the_date', 'get_the_time',	'the_time',
-		'get_the_modified_date','the_modified_date','get_the_modified_time','the_modified_time','get_post_modified_time', 'number_format_i18n'
+		'date_i18n','get_post_time','get_comment_date','get_comment_time','get_the_date','the_date','get_the_time','the_time',
+		'get_the_modified_date','the_modified_date','get_the_modified_time','the_modified_time','get_post_modified_time','number_format_i18n'
 	); 
 	for ($i = 0; $i < sizeof($remove_filters); $i++) remove_all_filters($remove_filters[$i]);
 
